@@ -47,7 +47,7 @@ CREATE TABLE SousDomaineFormation (
     MotsCles CLOB,
     FOREIGN KEY (RefDomaine) REFERENCES DomaineFormation(RefDomaine)
 );
-drop table SOUSSOUSDomaineFormation;
+
 CREATE TABLE SOUSSOUSDomaineFormation (
     RefSOUSSOUSDomaineF VARCHAR2(200) PRIMARY KEY,
     RefSOUSDomaineF VARCHAR2(200),
@@ -160,3 +160,11 @@ CREATE TABLE Inscription (
     FOREIGN KEY (IdClient) REFERENCES Client_Apprenant(IdClient),
     FOREIGN KEY (IdLaSession) REFERENCES LaSession(IdLaSession)
 );
+
+
+
+
+
+select * from domaineformation;
+select * from sousdomaineformation;
+select * from soussousdomaineformation;
