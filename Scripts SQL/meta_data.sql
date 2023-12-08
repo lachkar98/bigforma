@@ -242,3 +242,33 @@ INSERT INTO META_COLONNES (ID_COLONNE,NOM_TABLE,NOM_COLONNE)values(67,'Inscripti
 INSERT INTO META_COLONNES (ID_COLONNE,NOM_TABLE,NOM_COLONNE)values(68,'Inscription','IdLaSession');
 
 
+-- creation meta_special_caract�re
+drop table meta_caract_speciaux;
+create table meta_caract_speciaux(
+    ID_CARACT NUMBER primary key,
+    DESC_CARCT VARCHAR(50),
+    CARACT VARCHAR(4)
+);
+
+
+-- Inserer les caract�res speciaux --------------------------------------------------------------------------------------------------------------------------
+INSERT INTO meta_caract_speciaux  VALUES (0,'Retour � la ligne', '\n');
+INSERT INTO meta_caract_speciaux  VALUES (1,'Retour chariot', '\r');
+INSERT INTO meta_caract_speciaux  VALUES (2,'Tabulation horizontale', '\t');
+INSERT INTO meta_caract_speciaux  VALUES (3,'Apostrophe', '''');
+INSERT INTO meta_caract_speciaux  VALUES (4,'Guillemets doubles', '"');
+INSERT INTO meta_caract_speciaux  VALUES (5,'Barre oblique invers�e', '\\');
+INSERT INTO meta_caract_speciaux  VALUES (6,'Addition', '+');
+INSERT INTO meta_caract_speciaux  VALUES (7,'Soustraction ou signe n�gatif', '-');
+INSERT INTO meta_caract_speciaux  VALUES (8,'Virgule', ',');
+INSERT INTO meta_caract_speciaux  VALUES (9,'Arobase', '@');
+INSERT INTO meta_caract_speciaux  VALUES (10,'hash', '#');
+INSERT INTO meta_caract_speciaux  VALUES (11,'Dollar', '$');
+INSERT INTO meta_caract_speciaux  VALUES (12,'Esperluette', '&');
+INSERT INTO meta_caract_speciaux  VALUES (13,'underscore', '_');
+INSERT INTO meta_caract_speciaux  VALUES (14,'Tilde', '~');
+INSERT INTO meta_caract_speciaux  VALUES (15,'Accent circonflexe', '^');
+INSERT INTO meta_caract_speciaux  VALUES (16,'Barre verticale (pipe)', '|');
+INSERT INTO meta_caract_speciaux  VALUES (17,'Symbole degr�', '�');
+INSERT INTO meta_caract_speciaux  VALUES (18,'Mu', '�');
+INSERT INTO meta_caract_speciaux  VALUES (19,'Euro', '�');
