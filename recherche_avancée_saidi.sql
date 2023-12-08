@@ -1,18 +1,12 @@
-CREATE OR REPLACE FUNCTION trouver_variation_proche(column_value IN VARCHAR2, search_string IN VARCHAR2)
+CREATE OR REPLACE FUNCTION trouver_ligne_avec_mot_similaire(column_value IN VARCHAR2, search_string IN VARCHAR2)
 RETURN VARCHAR2
 IS
     word VARCHAR2(100);
     position INTEGER := 1;
     next_space INTEGER;
-    closest_word VARCHAR2(100);
-    min_distance NUMBER := 32767; -- Valeur maximale pour la distance d'édition
-    search_length INTEGER;
-    seuil_similarity INTEGER;
+    similarity_threshold INTEGER := 70; -- Seuil de similarité (70%)
+    current_similarity INTEGER;
 BEGIN
-    -- Calculer une distance d'édition optimale basée sur la longueur de search_string
-    search_length := LENGTH(search_string);
-    seuil_similarity := ROUND(search_length / 4); -- Exemple : 1/4 de la longueur
-
     LOOP
         next_space := INSTR(column_value, ' ', position);
 
@@ -23,12 +17,12 @@ BEGIN
             word := SUBSTR(column_value, position);
         END IF;
 
-        -- Vérifier la distance d'édition
-        IF UTL_MATCH.EDIT_DISTANCE(UPPER(word), UPPER(search_string)) <= seuil_similarity THEN
-            IF UTL_MATCH.EDIT_DISTANCE(UPPER(word), UPPER(search_string)) < min_distance THEN
-                min_distance := UTL_MATCH.EDIT_DISTANCE(UPPER(word), UPPER(search_string));
-                closest_word := word;
-            END IF;
+        -- Calculer la similarité Jaro-Winkler
+        current_similarity := UTL_MATCH.JARO_WINKLER_SIMILARITY(UPPER(word), UPPER(search_string));
+
+        -- Vérifier si la similarité dépasse le seuil
+        IF current_similarity >= similarity_threshold THEN
+            RETURN column_value; -- Retourner la ligne entière si la condition est remplie
         END IF;
 
         -- Préparer la position pour le prochain mot
@@ -38,43 +32,30 @@ BEGIN
         EXIT WHEN next_space = 0 OR next_space IS NULL;
     END LOOP;
 
-    RETURN closest_word;
-END trouver_variation_proche;
+    RETURN NULL; -- Retourner NULL si aucun mot similaire n'est trouvé
+END trouver_ligne_avec_mot_similaire;
 /
 
-----------------------------------
--- les lignes proches
-CREATE OR REPLACE PROCEDURE rechercher_lignes_proches(table_name IN VARCHAR2, column_name IN VARCHAR2, search_string IN VARCHAR2)
-IS
-    type t_cursor is ref cursor;
-    c t_cursor;
-    query_str VARCHAR2(1000);
-    column_value VARCHAR2(4000);
-BEGIN
-    query_str := 'SELECT ' || column_name || ' FROM ' || table_name;
-    
-    OPEN c FOR query_str;
-    LOOP
-        FETCH c INTO column_value;
-        EXIT WHEN c%NOTFOUND;
 
-        IF trouver_variation_proche(column_value, search_string) IS NOT NULL THEN
-            DBMS_OUTPUT.PUT_LINE(column_value);
-        END IF;
-    END LOOP;
-    CLOSE c;
-END rechercher_lignes_proches;
-/
-CREATE OR REPLACE FUNCTION search_phrase_OR(table_name IN VARCHAR2, column_name IN VARCHAR2, search_string IN VARCHAR2)
-RETURN SYS_REFCURSOR
+
+CREATE OR REPLACE FUNCTION trouver_lignes_avec_mots_similaires(
+    search_string IN VARCHAR2
+) RETURN VARCHAR2
 IS
-    c SYS_REFCURSOR;
-    query_str VARCHAR2(4000);
+    result_lines VARCHAR2(32767); -- Stockera les lignes correspondantes
+    column_value_motscles VARCHAR2(4000); -- Valeur de la colonne motscles
+    column_value_le_nom VARCHAR2(4000); -- Valeur de la colonne LE_NOM
     word VARCHAR2(100);
-    position INTEGER := 1;
+    position INTEGER;
     next_space INTEGER;
+    all_words_matched BOOLEAN;
+    search_words DBMS_SQL.VARCHAR2A;
+    i INTEGER;
 BEGIN
-    query_str := 'SELECT DISTINCT TO_CHAR(DBMS_LOB.SUBSTR(' || column_name || ', 4000, 1)) FROM ' || table_name || ' WHERE ';
+    -- Découper la chaîne de recherche en mots
+    search_words := DBMS_SQL.VARCHAR2A();
+    i := 1;
+    position := 1;
 
     LOOP
         next_space := INSTR(search_string, ' ', position);
@@ -83,56 +64,32 @@ BEGIN
         ELSE
             word := SUBSTR(search_string, position);
         END IF;
-
-        query_str := query_str || 'TO_CHAR(DBMS_LOB.SUBSTR(' || column_name || ', 4000, 1)) LIKE ''%' || word || '%''';
-        
+        search_words(i) := word;
+        i := i + 1;
         position := next_space + 1;
-        IF next_space != 0 THEN
-            query_str := query_str || ' OR ';
-        END IF;
-
         EXIT WHEN next_space = 0 OR next_space IS NULL;
     END LOOP;
 
-    OPEN c FOR query_str;
-    RETURN c;
-END search_phrase_OR;
-/
-
-CREATE OR REPLACE FUNCTION search_phrase(table_name IN VARCHAR2, column_name IN VARCHAR2, search_string IN VARCHAR2)
-RETURN SYS_REFCURSOR
-IS
-    c SYS_REFCURSOR;
-    query_str VARCHAR2(4000);
-    word VARCHAR2(100);
-    position INTEGER := 1;
-    next_space INTEGER;
-    first_word BOOLEAN := TRUE;
-BEGIN
-    query_str := 'SELECT DISTINCT TO_CHAR(DBMS_LOB.SUBSTR(' || column_name || ', 4000, 1)) FROM ' || table_name || ' WHERE ';
-
+    FOR rec IN (SELECT motscles, LE_NOM FROM soussousdomaineformation)
     LOOP
-        next_space := INSTR(search_string, ' ', position);
-        IF next_space != 0 THEN
-            word := SUBSTR(search_string, position, next_space - position);
-        ELSE
-            word := SUBSTR(search_string, position);
+        column_value_motscles := rec.motscles;
+        column_value_le_nom := rec.LE_NOM;
+
+        -- Vérifier si tous les mots ont un similaire dans la ligne
+        all_words_matched := TRUE;
+        FOR j IN 1..search_words.COUNT LOOP
+            IF trouver_ligne_avec_mot_similaire(column_value_motscles, search_words(j)) IS NULL THEN
+                all_words_matched := FALSE;
+                EXIT;
+            END IF;
+        END LOOP;
+
+        IF all_words_matched THEN
+            -- Ajouter la valeur de LE_NOM aux résultats
+            result_lines := result_lines || column_value_le_nom || '; ';
         END IF;
-
-        IF NOT first_word THEN
-            query_str := query_str || ' AND ';
-        END IF;
-
-        query_str := query_str || 'TO_CHAR(DBMS_LOB.SUBSTR(' || column_name || ', 4000, 1)) LIKE ''%' || word || '%''';
-        
-        position := next_space + 1;
-
-        first_word := FALSE;
-
-        EXIT WHEN next_space = 0 OR next_space IS NULL;
     END LOOP;
 
-    OPEN c FOR query_str;
-    RETURN c;
-END search_phrase;
+    RETURN  ; -- Retourner la chaîne de résultats
+END trouver_lignes_avec_mots_similaires;
 /
