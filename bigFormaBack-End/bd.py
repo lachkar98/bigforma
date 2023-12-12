@@ -13,4 +13,4 @@ class Db:
         cursor.close()
         self.connection.close()
 
-#Db().fetch_domain_formats()
+Db().fetch_domain_formats()
