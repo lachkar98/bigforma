@@ -65,7 +65,7 @@ CREATE TABLE SOUSSOUSDomaineFormation (
     Competences_gagnees CLOB,
     Organisation CLOB,
     MotsCles VARCHAR2(300),
-    prix VARCHAR2(20)
+    prix VARCHAR2(20),
     FOREIGN KEY (RefSOUSDomaineF) REFERENCES SousDomaineFormation(RefSousDomaine)
 );
 
