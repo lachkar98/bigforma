@@ -31,20 +31,20 @@ CREATE TABLE Specialitee (
 -- Création de la table DomaineFormation
 drop table DomaineFormation;
 CREATE TABLE DomaineFormation (
-    RefDomaine VARCHAR(200) PRIMARY KEY,
+    RefDomaine VARCHAR2(200) PRIMARY KEY,
     DomaineDeFormation VARCHAR2(50),
-    MotsCles CLOB,  -- Oracle utilise CLOB pour les grands objets textuels
+    MotsCles VARCHAR2(300),  -- Oracle utilise CLOB pour les grands objets textuels
     DateCreation DATE
 );
 
 -- Création de la table SousDomaineFormation
 drop table SousDomaineFormation;
 CREATE TABLE SousDomaineFormation (
-    RefSousDomaine VARCHAR(200) PRIMARY KEY,
-    RefDomaine VARCHAR(200),
-    SousDomaineDeFormation VARCHAR(200),
+    RefSousDomaine VARCHAR2(200) PRIMARY KEY,
+    RefDomaine VARCHAR2(200),
+    SousDomaineDeFormation VARCHAR2(200),
     Description CLOB,  -- Oracle utilise CLOB pour les grands objets textuels
-    MotsCles CLOB,
+    MotsCles VARCHAR2(300),
     FOREIGN KEY (RefDomaine) REFERENCES DomaineFormation(RefDomaine)
 );
 drop table SOUSSOUSDomaineFormation;
@@ -64,7 +64,8 @@ CREATE TABLE SOUSSOUSDomaineFormation (
     Chapitre CLOB,
     Competences_gagnees CLOB,
     Organisation CLOB,
-    MotsCles CLOB,
+    MotsCles VARCHAR2(300),
+    prix VARCHAR2(20)
     FOREIGN KEY (RefSOUSDomaineF) REFERENCES SousDomaineFormation(RefSousDomaine)
 );
 
