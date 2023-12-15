@@ -19,7 +19,7 @@ CREATE TABLE ABREVIATIONS (
     ABBREVIATION VARCHAR(255)
 );
 
--- Cr�ation de la table Specialitee
+-- Creation de la table Specialitee
 CREATE TABLE Specialitee (
     NumeroSpecialite VARCHAR(20) PRIMARY KEY,
     IntituleSpecialite VARCHAR(50),
@@ -56,7 +56,7 @@ CREATE TABLE SOUSSOUSDomaineFormation (
     Le_nom CLOB,
     Descriptio CLOB,
     Notes VARCHAR2(50),
-    Nombre_avis VARCHAR2(10),
+    Nombre_avis VARCHAR2(50),
     Duree VARCHAR2(50),  -- Utiliser VARCHAR2 pour les champs textuels
     Nombre_participants INTEGER,
     Niveau VARCHAR2(50),
@@ -74,7 +74,7 @@ CREATE TABLE SOUSSOUSDomaineFormation (
 
 
 
--- Cr�ation de la table OrganismeDeFormation
+-- Creation de la table OrganismeDeFormation
 CREATE TABLE OrganismeDeFormation (
     SIREN VARCHAR(20) PRIMARY KEY,
     RaisonSocial VARCHAR(20),
@@ -181,7 +181,7 @@ CREATE TABLE Appartenir (
     FOREIGN KEY (organismeformation_SIREN) REFERENCES OrganismeDeFormation(SIREN)
 );
 
-
+-- Cr�ation de la table Appartenir
 CREATE TABLE Inscription (
     IdClient VARCHAR(20),
     IdLaSession VARCHAR(20),
