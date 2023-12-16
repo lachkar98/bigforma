@@ -56,7 +56,7 @@ CREATE TABLE SOUSSOUSDomaineFormation (
     Le_nom CLOB,
     Descriptio CLOB,
     Notes VARCHAR2(50),
-    Nombre_avis VARCHAR2(10),
+    Nombre_avis VARCHAR2(25),
     Duree VARCHAR2(50),  -- Utiliser VARCHAR2 pour les champs textuels
     Nombre_participants INTEGER,
     Niveau VARCHAR2(50),
@@ -67,7 +67,7 @@ CREATE TABLE SOUSSOUSDomaineFormation (
     Competences_gagnees CLOB,
     Organisation CLOB,
     MotsCles VARCHAR2(300),
-    prix VARCHAR2(20),
+    prix VARCHAR2(30),
     FOREIGN KEY (RefSOUSDomaineF) REFERENCES SousDomaineFormation(RefSousDomaine)
 );
 
