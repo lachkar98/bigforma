@@ -14,13 +14,3 @@
 - **Efforts d'Homogénéisation :** Des premières étapes vers l'homogénéisation des données ont été entreprises.
 
 - **Méta-tables :** La création des méta-tables a commencé, bien que le script correspondant n'ait pas encore été ajouté. Elles seront finalisées dans les phases ultérieures du projet.
-
-# Projet BigForma Back-end par python
-* il faut installer les libraries : 
-* 1 - installer Flask 
-* 2 - cx_Oracle preferable d'utiliser anaconda -> conda install cx_Oracle
-* _un test pour afficher les domains formations_
-* changer le donnees dans fichier bd.py host, port et service_name
-* executer le fichier main
-* lancer une requete get prefix//domain-form
-* dans mon cas prefix = http://127.0.0.1:5000 (s'affiche après execution de main.py)

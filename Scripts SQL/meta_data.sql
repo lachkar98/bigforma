@@ -272,3 +272,9 @@ INSERT INTO meta_caract_speciaux  VALUES (16,'Barre verticale (pipe)', '|');
 INSERT INTO meta_caract_speciaux  VALUES (17,'Symbole degr�', '�');
 INSERT INTO meta_caract_speciaux  VALUES (18,'Mu', '�');
 INSERT INTO meta_caract_speciaux  VALUES (19,'Euro', '�');
+
+
+SELECT * FROM META_TABLES
+SELECT * FROM meta_caract_speciaux
+SELECT * FROM meta_caracteristiques
+SELECT * FROM META_COLONNES
