@@ -216,7 +216,11 @@ def get_database_connection():
     dsn_tns = cx_Oracle.makedsn('localhost', '1521', service_name='xe')
 
     try:
+<<<<<<< HEAD
         connection = cx_Oracle.connect(user='sys', password='projet_bda',mode=cx_Oracle.SYSDBA, dsn=dsn_tns)
+=======
+        connection = cx_Oracle.connect(user='sys', password='*******',mode=cx_Oracle.SYSDBA, dsn=dsn_tns)
+>>>>>>> b563c78b75ac49430c107c86de67fb2997e39882
         return connection
     except cx_Oracle.DatabaseError as e:
         st.error(f"Error connecting to the database: {e}")
