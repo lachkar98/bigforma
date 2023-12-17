@@ -7,7 +7,7 @@ IS
     position INTEGER := 1;
     next_space INTEGER;
     similarity_threshold INTEGER := 75; -- Seuil de similarité pour Jaro-Winkler
-    levenshtein_threshold INTEGER := 1; -- Seuil pour la distance de Levenshtein pour les mots courts
+    levenshtein_threshold INTEGER := 2; -- Seuil pour la distance de Levenshtein pour les mots courts
     highest_similarity INTEGER := 0; -- Plus haut score de similarité trouvé
     current_similarity INTEGER;
     levenshtein_distance INTEGER;
@@ -24,6 +24,8 @@ BEGIN
             levenshtein_distance := UTL_MATCH.EDIT_DISTANCE(UPPER(word), UPPER(search_string));
             IF levenshtein_distance <= levenshtein_threshold THEN
                 current_similarity := 100; -- Score maximal pour une correspondance exacte
+            ELSE
+                current_similarity := 50; -- Score de 50% si le seuil n'est pas atteint
             END IF;
         ELSE
             current_similarity := UTL_MATCH.JARO_WINKLER_SIMILARITY(UPPER(word), UPPER(search_string));
@@ -40,48 +42,77 @@ BEGIN
     IF highest_similarity >= similarity_threshold THEN
         RETURN highest_similarity;
     ELSE
-        RETURN NULL;
+        RETURN 0;
     END IF;
 END trouver_ligne_avec_mot_similaire;
 /
 
 drop table temp_resultats;
 CREATE GLOBAL TEMPORARY TABLE temp_resultats (
-    le_nom VARCHAR2(4000),
-    score INTEGER
+    RefSOUSSOUSDomaineF VARCHAR2(200),
+    RefSOUSDomaineF VARCHAR2(200),
+    Le_nom CLOB,
+    Descriptio CLOB,
+    Notes VARCHAR2(50),
+    Nombre_avis VARCHAR2(25),
+    Duree VARCHAR2(50),
+    Nombre_participants INTEGER,
+    Niveau VARCHAR2(50),
+    Liens CLOB,
+    Destinataires CLOB,
+    Formateurs CLOB,
+    Chapitre CLOB,
+    Competences_gagnees CLOB,
+    Organisation CLOB,
+    MotsCles VARCHAR2(300),
+    prix VARCHAR2(30),
+    score INTEGER -- Champ supplémentaire pour le score
 ) ON COMMIT DELETE ROWS;
 
 CREATE OR REPLACE FUNCTION trouver_lignes_avec_mots_similaires(
     search_string IN VARCHAR2
-) RETURN VARCHAR2
+) RETURN SYS_REFCURSOR
 IS
-    result_lines VARCHAR2(32767);
-    column_value_motscles VARCHAR2(4000);
-    column_value_le_nom VARCHAR2(4000);
-    current_score INTEGER;
+    result_cursor SYS_REFCURSOR;
+    sum_scores INTEGER;
+    count_scores INTEGER;
+    avg_score INTEGER;
 BEGIN
-    -- Nettoyer la table temporaire au début
     DELETE FROM temp_resultats;
 
-    -- Logique pour calculer les scores et stocker les résultats dans la table temporaire
-    FOR rec IN (SELECT motscles, LE_NOM FROM soussousdomaineformation)
+    FOR rec IN (SELECT * FROM SOUSSOUSDomaineFormation)
     LOOP
-        column_value_motscles := rec.motscles;
-        column_value_le_nom := rec.LE_NOM;
-        current_score := trouver_ligne_avec_mot_similaire(column_value_motscles, search_string);
+        sum_scores := 0;
+        count_scores := 0;
 
-        IF current_score IS NOT NULL THEN
-            INSERT INTO temp_resultats (le_nom, score)
-            VALUES (column_value_le_nom, current_score);
+        FOR search_word IN (SELECT REGEXP_SUBSTR(search_string, '[^ ]+', 1, LEVEL) AS word
+                            FROM DUAL
+                            CONNECT BY REGEXP_SUBSTR(search_string, '[^ ]+', 1, LEVEL) IS NOT NULL)
+        LOOP
+            sum_scores := sum_scores + trouver_ligne_avec_mot_similaire(rec.MotsCles, search_word.word);
+            count_scores := count_scores + 1;
+        END LOOP;
+
+        IF count_scores > 0 THEN
+            avg_score := sum_scores / count_scores;
+        ELSE
+            avg_score := NULL;
+        END IF;
+
+        IF avg_score IS NOT NULL THEN
+            INSERT INTO temp_resultats (
+                RefSOUSSOUSDomaineF, RefSOUSDomaineF, Le_nom, Descriptio, Notes, Nombre_avis, Duree,
+                Nombre_participants, Niveau, Liens, Destinataires, Formateurs, Chapitre, Competences_gagnees,
+                Organisation, MotsCles, prix, score
+            ) VALUES (
+                rec.RefSOUSSOUSDomaineF, rec.RefSOUSDomaineF, rec.Le_nom, rec.Descriptio, rec.Notes, rec.Nombre_avis,
+                rec.Duree, rec.Nombre_participants, rec.Niveau, rec.Liens, rec.Destinataires, rec.Formateurs,
+                rec.Chapitre, rec.Competences_gagnees, rec.Organisation, rec.MotsCles, rec.prix, avg_score
+            );
         END IF;
     END LOOP;
 
-    -- Sélectionner et trier les résultats à partir de la table temporaire
-    FOR rec IN (SELECT le_nom, score FROM temp_resultats ORDER BY score DESC)
-    LOOP
-        result_lines := result_lines || rec.le_nom || ' (Score: ' || rec.score || '); ';
-    END LOOP;
-
-    RETURN result_lines;
+    OPEN result_cursor FOR SELECT * FROM temp_resultats ORDER BY score DESC;
+    RETURN result_cursor;
 END trouver_lignes_avec_mots_similaires;
 /
